@@ -1,10 +1,10 @@
 use std::error::Error;
 use std::io::{self, Read, Write};
 
-type Result<T> = std::result::Result<T, Box<dyn Error>>;
+pub type Result<T> = std::result::Result<T, Box<dyn Error>>;
 
 #[derive(Debug, Clone)]
-struct Table {
+pub struct Table {
     x: [[usize; 5]; 5],
     row_sum: [usize; 5],
     col_sum: [usize; 5],
@@ -27,7 +27,7 @@ impl Table {
     }
 }
 
-fn main() -> Result<()> {
+pub fn main() -> Result<()> {
     let mut input = String::new();
     io::stdin().read_to_string(&mut input)?;
 
@@ -43,7 +43,7 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-fn parse(input: &str) -> Result<(Vec<usize>, Vec<Table>)> {
+pub fn parse(input: &str) -> Result<(Vec<usize>, Vec<Table>)> {
     let mut iter = input.lines();
     let mut numbers = Vec::<usize>::new();
     let mut tables = Vec::<Table>::new();
@@ -74,7 +74,7 @@ fn parse(input: &str) -> Result<(Vec<usize>, Vec<Table>)> {
     Ok((numbers, tables))
 }
 
-fn part1(numbers: &[usize], tables: &mut [Table]) -> (usize, usize) {
+pub fn part1(numbers: &[usize], tables: &mut [Table]) -> (usize, usize) {
     let mut last = 0_usize;
     let mut max_sum = usize::MIN;
     for n in numbers {
@@ -94,7 +94,7 @@ fn part1(numbers: &[usize], tables: &mut [Table]) -> (usize, usize) {
 }
 
 
-fn part2(numbers: &[usize], tables: &mut [Table]) -> (usize, usize) {
+pub fn part2(numbers: &[usize], tables: &mut [Table]) -> (usize, usize) {
     let mut last = 0_usize;
     let mut last_sum = usize::MIN;
     for n in numbers {
