@@ -132,7 +132,7 @@ pub fn part1(numbers: &[usize], tables: &[Table]) -> (usize, usize) {
 
 pub fn part2(numbers: &[usize], tables: &[Table]) -> (usize, usize) {
     let mut last = 0_usize;
-    let mut last_sum = usize::MIN;
+    let mut last_index = usize::MIN;
     let mut masks = vec![Mask { mask: 0 }; tables.len()];
     for &n in numbers {
         let mut has_some = false;
@@ -140,14 +140,14 @@ pub fn part2(numbers: &[usize], tables: &[Table]) -> (usize, usize) {
             has_some = true;
             if tables[i].mark(n, m) {
                 last = n;
-                last_sum = tables[i].sum(m);
+                last_index = i;
             }
         }
         if !has_some {
             break;
         }
     }
-    (last, last_sum)
+    (last, tables[last_index].sum(&masks[last_index]))
 }
 
 #[cfg(test)]
