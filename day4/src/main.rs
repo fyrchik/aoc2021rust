@@ -15,37 +15,16 @@ struct Mask {
 }
 
 impl Mask {
-    const WON: usize = 1 << 25;
-    const ROW1: usize = (1 << 5) - 1;
-    const ROW2: usize = Mask::ROW1 << 5;
-    const ROW3: usize = Mask::ROW2 << 5;
-    const ROW4: usize = Mask::ROW3 << 5;
-    const ROW5: usize = Mask::ROW4 << 5;
-    const COL1: usize = 1 << 20 | 1 << 15 | 1 << 10 | 1 << 5 | 1;
-    const COL2: usize = Mask::COL1 << 1;
-    const COL3: usize = Mask::COL2 << 1;
-    const COL4: usize = Mask::COL3 << 1;
-    const COL5: usize = Mask::COL4 << 1;
-
-    #[inline]
-    fn won(&self) -> bool {
-        self.mask & Mask::WON != 0
-    }
+    const ROW: usize = 0x1F;
+    const COL: usize = 1 << 20 | 1 << 15 | 1 << 10 | 1 << 5 | 1 << 0;
 
     fn mark(&mut self, n: usize) -> bool {
-        self.mask |= 1 << n;
-        let won = self.mask & Mask::ROW1 == Mask::ROW1
-            || self.mask & Mask::ROW2 == Mask::ROW2
-            || self.mask & Mask::ROW3 == Mask::ROW3
-            || self.mask & Mask::ROW4 == Mask::ROW4
-            || self.mask & Mask::ROW5 == Mask::ROW5
-            || self.mask & Mask::COL1 == Mask::COL1
-            || self.mask & Mask::COL2 == Mask::COL2
-            || self.mask & Mask::COL3 == Mask::COL3
-            || self.mask & Mask::COL4 == Mask::COL4
-            || self.mask & Mask::COL5 == Mask::COL5;
-        self.mask |= (won as usize) << 25;
-        self.won()
+        let mask = self.mask | (1 << n);
+        let row = Mask::ROW << (n / 5 * 5);
+        let col = Mask::COL << (n % 5);
+        let won = mask & row == row || mask & col == col;
+        self.mask = (won as usize) << 25 | mask;
+        won
     }
 }
 
