@@ -15,5 +15,6 @@ name = "day4"
 path = "src/main.rs"
 
 [[bench]]
-name = "day4_benchmark"
+name = "main"
+path = "benches/day4_benchmark.rs"
 harness = false
