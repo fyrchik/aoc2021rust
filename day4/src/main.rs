@@ -29,7 +29,7 @@ impl Mask {
 
     #[inline]
     fn won(&self) -> bool {
-        return self.mask & Mask::WON != 0;
+        self.mask & Mask::WON != 0
     }
 
     fn mark(&mut self, n: usize) -> bool {
