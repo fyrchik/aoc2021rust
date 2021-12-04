@@ -111,23 +111,16 @@ pub fn parse(input: &str) -> Result<(Vec<usize>, Vec<Table>)> {
 }
 
 pub fn part1(numbers: &[usize], tables: &[Table]) -> (usize, usize) {
-    let mut last = 0_usize;
-    let mut max_sum = usize::MIN;
     let mut masks = vec![Mask { mask: 0 }; tables.len()];
+
     for &n in numbers {
-        let mut is_last = false;
         for (t, m) in tables.iter().zip(masks.iter_mut()) {
             if t.mark(n, m) {
-                is_last = true;
-                max_sum = std::cmp::max(max_sum, t.sum(m));
+                return (n, t.sum(m));
             }
         }
-        if is_last {
-            last = n;
-            break;
-        }
     }
-    (last, max_sum)
+    (0, 0)
 }
 
 pub fn part2(numbers: &[usize], tables: &[Table]) -> (usize, usize) {
