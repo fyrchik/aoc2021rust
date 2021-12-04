@@ -5,22 +5,19 @@ pub type Result<T> = std::result::Result<T, Box<dyn Error>>;
 
 #[derive(Debug, Clone)]
 pub struct Table {
-    x: [[usize; 5]; 5],
-    row_sum: [usize; 5],
-    col_sum: [usize; 5],
+    x: [usize; 25],
+    sums: [usize; 10],
     won: bool,
 }
 
 impl Table {
     fn mark(&mut self, n: usize) -> bool {
-        for (i, row) in self.x.iter().enumerate() {
-            for (j, num) in row.iter().enumerate() {
-                if *num == n {
-                    self.row_sum[i] -= n;
-                    self.col_sum[j] -= n;
-                    self.won = self.row_sum.contains(&0) || self.col_sum.contains(&0);
-                    return self.won;
-                }
+        for (i, num) in self.x.iter().enumerate() {
+            if *num == n {
+                self.sums[i / 5] -= n;
+                self.sums[5 + i % 5] -= n;
+                self.won = self.sums.contains(&0);
+                return self.won;
             }
         }
         false
@@ -35,7 +32,6 @@ pub fn main() -> Result<()> {
 
     let (last_number, sum) = part1(&numbers, tables.clone().as_mut());
     io::stdout().write_fmt(format_args!("Part 1: {}\n", last_number * sum))?;
-
 
     let (last_number, sum) = part2(&numbers, tables.clone().as_mut());
     io::stdout().write_fmt(format_args!("Part 2: {}\n", last_number * sum))?;
@@ -55,18 +51,18 @@ pub fn parse(input: &str) -> Result<(Vec<usize>, Vec<Table>)> {
 
     while let Some(_) = iter.next() {
         let mut t = Table {
-            x: [[0; 5]; 5],
-            row_sum: [0; 5],
-            col_sum: [0; 5],
+            x: [0; 25],
+            sums: [0; 10],
             won: false,
         };
-        for (row, rs) in t.x.iter_mut().zip(t.row_sum.iter_mut()) {
+        for i in 0..5 {
             let line = iter.next().ok_or("can't read next line")?;
-            let mut ss = line.split_whitespace();
-            for (num, cs) in row.iter_mut().zip(t.col_sum.iter_mut()) {
-                *num = ss.next().unwrap_or_default().parse()?;
-                *cs += *num;
-                *rs += *num;
+            let ss = line.split_whitespace();
+            for (j, num) in ss.enumerate() {
+                let num = num.parse()?;
+                t.x[i * 5 + j] = num;
+                t.sums[i] += num;
+                t.sums[5 + j] += num;
             }
         }
         tables.push(t);
@@ -82,7 +78,7 @@ pub fn part1(numbers: &[usize], tables: &mut [Table]) -> (usize, usize) {
         for t in tables.iter_mut() {
             if t.mark(*n) {
                 is_last = true;
-                max_sum = std::cmp::max(max_sum, t.row_sum.iter().sum());
+                max_sum = std::cmp::max(max_sum, t.sums.iter().take(5).sum());
             }
         }
         if is_last {
@@ -93,7 +89,6 @@ pub fn part1(numbers: &[usize], tables: &mut [Table]) -> (usize, usize) {
     (last, max_sum)
 }
 
-
 pub fn part2(numbers: &[usize], tables: &mut [Table]) -> (usize, usize) {
     let mut last = 0_usize;
     let mut last_sum = usize::MIN;
@@ -103,7 +98,7 @@ pub fn part2(numbers: &[usize], tables: &mut [Table]) -> (usize, usize) {
             has_some = true;
             if t.mark(*n) {
                 last = *n;
-                last_sum = t.row_sum.iter().sum();
+                last_sum = t.sums.iter().take(5).sum();
             }
         }
         if !has_some {
