@@ -24,7 +24,7 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-fn parse<'a>(input: &str) -> Result<Vec<Movement>> {
+fn parse(input: &str) -> Result<Vec<Movement>> {
     let mut moves = Vec::<Movement>::new();
 
     for line in input.lines() {
@@ -44,7 +44,7 @@ fn parse<'a>(input: &str) -> Result<Vec<Movement>> {
     Ok(moves)
 }
 
-fn part1(moves: &Vec<Movement>) -> (usize, usize) {
+fn part1(moves: &[Movement]) -> (usize, usize) {
     let mut dist = 0_usize;
     let mut depth = 0_usize;
 
@@ -58,7 +58,7 @@ fn part1(moves: &Vec<Movement>) -> (usize, usize) {
     (dist, depth)
 }
 
-fn part2(moves: &Vec<Movement>) -> (usize, usize) {
+fn part2(moves: &[Movement]) -> (usize, usize) {
     let mut dist = 0_usize;
     let mut depth = 0_usize;
     let mut aim = 0_usize;
