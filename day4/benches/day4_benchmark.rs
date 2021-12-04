@@ -10,15 +10,14 @@ fn get_input(filename: &str) -> Result<(Vec<usize>, Vec<Table>)> {
 pub fn part1_bench(c: &mut Criterion) {
     let (numbers, tables) = get_input("input").unwrap();
     c.bench_function("part1", |b| {
-        b.iter(|| part1(black_box(&numbers), black_box(tables.clone().as_mut())));
+        b.iter(|| part1(black_box(&numbers), black_box(&tables)));
     });
 }
 
 pub fn part2_bench(c: &mut Criterion) {
     let (numbers, tables) = get_input("input").unwrap();
-
     c.bench_function("part2", |b| {
-        b.iter(|| part2(black_box(&numbers), black_box(tables.clone().as_mut())))
+        b.iter(|| part2(black_box(&numbers), black_box(&tables)))
     });
 }
 
