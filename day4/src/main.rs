@@ -61,9 +61,9 @@ impl Table {
 
     fn sum(&self, m: &Mask) -> usize {
         let mut sum = 0_usize;
-        for (i, n) in self.x.iter().enumerate() {
+        for i in 0..25 {
             if m.mask & (1 << i) == 0 {
-                sum += n;
+                sum += self.x[i];
             }
         }
         sum
