@@ -34,7 +34,7 @@ impl Mask {
 
     fn mark(&mut self, n: usize) -> bool {
         self.mask |= 1 << n;
-        if self.mask & Mask::ROW1 == Mask::ROW1
+        let won = self.mask & Mask::ROW1 == Mask::ROW1
             || self.mask & Mask::ROW2 == Mask::ROW2
             || self.mask & Mask::ROW3 == Mask::ROW3
             || self.mask & Mask::ROW4 == Mask::ROW4
@@ -43,12 +43,9 @@ impl Mask {
             || self.mask & Mask::COL2 == Mask::COL2
             || self.mask & Mask::COL3 == Mask::COL3
             || self.mask & Mask::COL4 == Mask::COL4
-            || self.mask & Mask::COL5 == Mask::COL5
-        {
-            self.mask |= Mask::WON;
-            return true;
-        }
-        false
+            || self.mask & Mask::COL5 == Mask::COL5;
+        self.mask |= (won as usize) << 25;
+        self.won()
     }
 }
 
