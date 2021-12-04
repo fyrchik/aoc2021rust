@@ -131,23 +131,24 @@ pub fn part1(numbers: &[usize], tables: &[Table]) -> (usize, usize) {
 }
 
 pub fn part2(numbers: &[usize], tables: &[Table]) -> (usize, usize) {
-    let mut last = 0_usize;
     let mut last_index = usize::MIN;
+    let mut curr_max = usize::MIN;
     let mut masks = vec![Mask { mask: 0 }; tables.len()];
-    for &n in numbers {
-        let mut has_some = false;
-        for (i, m) in masks.iter_mut().enumerate().filter(|(_, w)| !w.won()) {
-            has_some = true;
-            if tables[i].mark(n, m) {
-                last = n;
-                last_index = i;
+    for (i, (t, m)) in tables.iter().zip(masks.iter_mut()).enumerate() {
+        for (j, &n) in numbers.iter().enumerate() {
+            if t.mark(n, m) {
+                if j > curr_max {
+                    curr_max = j;
+                    last_index = i;
+                }
+                break;
             }
         }
-        if !has_some {
-            break;
-        }
     }
-    (last, tables[last_index].sum(&masks[last_index]))
+    (
+        numbers[curr_max],
+        tables[last_index].sum(&masks[last_index]),
+    )
 }
 
 #[cfg(test)]
