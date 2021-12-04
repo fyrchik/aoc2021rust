@@ -12,13 +12,11 @@ pub struct Table {
 
 impl Table {
     fn mark(&mut self, n: usize) -> bool {
-        for (i, num) in self.x.iter().enumerate() {
-            if *num == n {
-                self.sums[i / 5] -= n;
-                self.sums[5 + i % 5] -= n;
-                self.won = self.sums.contains(&0);
-                return self.won;
-            }
+        if let Some(i) = self.x.iter().position(|&num| num == n) {
+            self.sums[i / 5] -= n;
+            self.sums[5 + i % 5] -= n;
+            self.won = self.sums.contains(&0);
+            return self.won;
         }
         false
     }
