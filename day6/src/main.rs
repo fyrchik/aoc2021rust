@@ -31,7 +31,20 @@ fn part1(fishes: &[u8], days: usize) -> usize {
         hist[*f as usize] += 1;
     }
 
-    for _ in 0..days {
+    for _ in 0..days/7 {
+        let baby0 = hist[7];
+        let baby1 = hist[8];
+        hist[7] = hist[5];
+        hist[8] = hist[6];
+        hist[5] += hist[3];
+        hist[6] += hist[4];
+        hist[3] += hist[1];
+        hist[4] += hist[2];
+        hist[2] += hist[0];
+        hist[0] += baby0;
+        hist[1] += baby1;
+    }
+    for _ in 0..days%7 {
         let first = hist[0];
         hist.copy_within(1..=8, 0);
         hist[6] += first;
