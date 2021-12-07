@@ -126,12 +126,12 @@ fn parse(input: &str) -> Result<Vec<Line>> {
         let (pa, pb) = s.split_once("->").ok_or("invalid line format")?;
 
         let (sx, sy) = pa.split_once(',').ok_or("invalid line format")?;
-        let ax = sx.parse()?;
-        let ay = sy.parse()?;
+        let ax = sx.trim().parse()?;
+        let ay = sy.trim().parse()?;
 
         let (sx, sy) = pb.split_once(',').ok_or("invalid line format")?;
-        let bx = sx.parse()?;
-        let by = sy.parse()?;
+        let bx = sx.trim().parse()?;
+        let by = sy.trim().parse()?;
 
         lines.push(Line::new(ax, ay, bx, by));
     }
