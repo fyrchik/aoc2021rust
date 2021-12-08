@@ -22,7 +22,7 @@ fn part1(input: &str) -> usize {
     for line in input.lines() {
         let (_, out) = line.split_once('|').unwrap();
         for num in out.split_whitespace() {
-            count += [2_usize, 3, 4, 7].contains(&num.len()) as usize;
+            count += matches!(num.len(), 2 | 3 | 4 | 7) as usize;
         }
     }
 
