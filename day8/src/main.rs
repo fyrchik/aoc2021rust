@@ -28,7 +28,7 @@ fn part1(input: &str) -> usize {
     count
 }
 
-fn convert(number: &str) -> usize {
+fn convert(number: &str) -> u8 {
     number
         .as_bytes()
         .iter()
@@ -37,9 +37,9 @@ fn convert(number: &str) -> usize {
 
 pub fn part2(input: &str) -> usize {
     let mut sum = 0_usize;
-    let mut numbers = [0_usize; 10];
-    let mut five = [0_usize; 3];
-    let mut six = [0_usize; 3];
+    let mut numbers = [0_u8; 10];
+    let mut five = [0_u8; 3];
+    let mut six = [0_u8; 3];
 
     for line in input.lines() {
         let (patterns, out) = line.split_once('|').unwrap();
