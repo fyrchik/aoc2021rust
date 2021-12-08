@@ -35,7 +35,7 @@ fn convert(number: &str) -> usize {
         .fold(0, |acc, b| acc | (1 << (b - b'a')))
 }
 
-fn part2(input: &str) -> usize {
+pub fn part2(input: &str) -> usize {
     let mut sum = 0_usize;
     let mut numbers = [0_usize; 10];
     let mut five = [0_usize; 3];

@@ -1,0 +1,10 @@
+use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use day8::part2;
+
+pub fn part2_bench(c: &mut Criterion) {
+    let input = include_str!("../input");
+    c.bench_function("part 2", |b| b.iter(|| part2(black_box(input))));
+}
+
+criterion_group!(benches, part2_bench);
+criterion_main!(benches);
