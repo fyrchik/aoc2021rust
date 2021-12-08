@@ -57,10 +57,12 @@ pub fn part2(input: &str) -> usize {
                     7 => numbers[8] = x,
                     5 => {
                         numbers[i5] = x;
+                        // i5 iterates over 2, 3, 5
                         i5 += (i5 == 3) as usize + 1;
                     }
                     6 => {
                         numbers[i6] = x;
+                        // i6 iterates over 0, 6, 9
                         i6 += 3 * ((i6 == 0) as usize + 1);
                     }
                     _ => panic!("unexpected pattern"),
