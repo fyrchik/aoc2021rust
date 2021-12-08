@@ -1,3 +1,4 @@
+use rayon::{iter::ParallelIterator, str::ParallelString};
 use std::io::{self, Read, Write};
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
@@ -36,67 +37,58 @@ fn convert(number: &str) -> u8 {
 }
 
 pub fn part2(input: &str) -> usize {
-    let mut sum = 0_usize;
-    let mut numbers = [0_u8; 10];
-    let mut five = [0_u8; 3];
-    let mut six = [0_u8; 3];
+    input
+        .par_lines()
+        .map(|line| {
+            let (patterns, out) = line.split_once('|').unwrap();
 
-    for line in input.lines() {
-        let (patterns, out) = line.split_once('|').unwrap();
+            let mut numbers = [0_u8; 10];
 
-        let mut i5: usize = 0;
-        let mut i6: usize = 0;
-        for pat in patterns.split_whitespace() {
-            let x = convert(pat);
-            match pat.len() {
-                2 => numbers[1] = x,
-                3 => numbers[7] = x,
-                4 => numbers[4] = x,
-                7 => numbers[8] = x,
-                5 => {
-                    five[i5] = x;
-                    i5 += 1
-                }
-                6 => {
-                    six[i6] = x;
-                    i6 += 1
-                }
-                _ => panic!("unexpected pattern"),
+            // num 0 1 2 3 4 5 6 7 8 9
+            // len 6 2 5 5 4 5 6 3 7 6
+            let mut i5: usize = 2;
+            let mut i6: usize = 0;
+            for pat in patterns.split_whitespace() {
+                // 2 3 4 5  6  7
+                // 1 7 4 i5 i6 8
+                let l = pat.len();
+                let is2 = (l == 2) as usize;
+                let is3 = (l == 3) as usize;
+                let is4 = (l == 4) as usize;
+                let is5 = (l == 5) as usize;
+                let is6 = (l == 6) as usize;
+                let is7 = (l == 7) as usize;
+                let index = 1 * is2 + 7 * is3 + 4 * is4 + 8 * is7 + i5 * is5 + i6 * is6;
+                numbers[index] = convert(pat);
+                i5 += is5 * (1 + ((i5 == 3) as usize));
+                i6 += is6 * 3 * (((i6 == 0) as usize) + 1);
             }
-        }
 
-        numbers[3] = *five.iter().find(|&n| n & numbers[1] == numbers[1]).unwrap();
-        numbers[9] = *six.iter().find(|&n| n & numbers[4] == numbers[4]).unwrap();
-        for &n in six.iter() {
-            if n == numbers[9] {
-                continue;
-            }
-            if n & numbers[1] == numbers[1] {
-                numbers[0] = n;
-            } else {
-                numbers[6] = n;
-            }
-        }
-        for &n in five.iter() {
-            if n == numbers[3] {
-                continue;
-            }
-            if n & numbers[6] == n {
-                numbers[5] = n
-            } else {
-                numbers[2] = n
-            }
-        }
+            // ii is 0 if 9 is on its place.
+            let ii = (numbers[9] & numbers[4] != numbers[4]) as usize;
+            let index = (numbers[0] & numbers[4] != numbers[4]) as usize;
+            numbers.swap(9 * ii, ii * index * 6);
 
-        sum += out
-            .split_whitespace()
-            .map(|s| convert(s))
-            .fold(0, |acc, d| {
-                (acc * 10) + numbers.iter().position(|&n| n == d).unwrap()
-            });
-    }
+            // index is 0 if 0 is on its place.
+            let index = (numbers[0] & numbers[1] != numbers[1]) as usize;
+            numbers.swap(0, index * 6);
 
-    sum
+            // ii is 0 if 3 is on its place.
+            let ii = (numbers[3] & numbers[1] != numbers[1]) as usize;
+            let index = (numbers[2] & numbers[1] != numbers[1]) as usize;
+            numbers.swap(ii * 3, ii * (2 + index * 3));
+
+            // index is 0 if 5 is on its place;
+            let index = (numbers[5] & numbers[6] != numbers[5]) as usize;
+            numbers.swap(2, 2 + index * 3);
+
+            out.split_whitespace()
+                .map(|s| convert(s))
+                .fold(0, |acc, d| {
+                    (acc * 10) + numbers.iter().position(|&n| n == d).unwrap()
+                })
+        })
+        .sum::<usize>()
 }
 
 #[cfg(test)]
