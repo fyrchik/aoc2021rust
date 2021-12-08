@@ -82,8 +82,8 @@ pub fn part2(input: &str) -> usize {
                 numbers.swap(0, 6);
             }
 
-            if numbers[3] & numbers[1] != numbers[1] {
-                if numbers[2] & numbers[1] != numbers[1] {
+            if numbers[3] & numbers[7] != numbers[7] {
+                if numbers[2] & numbers[7] != numbers[7] {
                     numbers.swap(3, 5);
                 } else {
                     numbers.swap(3, 2);
