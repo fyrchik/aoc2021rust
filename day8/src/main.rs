@@ -29,6 +29,7 @@ fn part1(input: &str) -> usize {
     count
 }
 
+#[inline]
 fn convert(number: &str) -> u8 {
     number
         .as_bytes()
