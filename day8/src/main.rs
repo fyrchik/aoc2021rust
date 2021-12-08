@@ -49,38 +49,47 @@ pub fn part2(input: &str) -> usize {
             let mut i5: usize = 2;
             let mut i6: usize = 0;
             for pat in patterns.split_whitespace() {
-                // 2 3 4 5  6  7
-                // 1 7 4 i5 i6 8
-                let l = pat.len();
-                let is2 = (l == 2) as usize;
-                let is3 = (l == 3) as usize;
-                let is4 = (l == 4) as usize;
-                let is5 = (l == 5) as usize;
-                let is6 = (l == 6) as usize;
-                let is7 = (l == 7) as usize;
-                let index = 1 * is2 + 7 * is3 + 4 * is4 + 8 * is7 + i5 * is5 + i6 * is6;
-                numbers[index] = convert(pat);
-                i5 += is5 * (1 + ((i5 == 3) as usize));
-                i6 += is6 * 3 * (((i6 == 0) as usize) + 1);
+                let x = convert(pat);
+                match pat.len() {
+                    2 => numbers[1] = x,
+                    3 => numbers[7] = x,
+                    4 => numbers[4] = x,
+                    7 => numbers[8] = x,
+                    5 => {
+                        numbers[i5] = x;
+                        i5 += (i5 == 3) as usize + 1;
+                    }
+                    6 => {
+                        numbers[i6] = x;
+                        i6 += 3 * ((i6 == 0) as usize + 1);
+                    }
+                    _ => panic!("unexpected pattern"),
+                }
             }
 
-            // ii is 0 if 9 is on its place.
-            let ii = (numbers[9] & numbers[4] != numbers[4]) as usize;
-            let index = (numbers[0] & numbers[4] != numbers[4]) as usize;
-            numbers.swap(9 * ii, ii * index * 6);
+            if numbers[9] & numbers[4] != numbers[4] {
+                if numbers[0] & numbers[4] != numbers[4] {
+                    numbers.swap(9, 6);
+                } else {
+                    numbers.swap(9, 0)
+                }
+            }
 
-            // index is 0 if 0 is on its place.
-            let index = (numbers[0] & numbers[1] != numbers[1]) as usize;
-            numbers.swap(0, index * 6);
+            if numbers[0] & numbers[1] != numbers[1] {
+                numbers.swap(0, 6);
+            }
 
-            // ii is 0 if 3 is on its place.
-            let ii = (numbers[3] & numbers[1] != numbers[1]) as usize;
-            let index = (numbers[2] & numbers[1] != numbers[1]) as usize;
-            numbers.swap(ii * 3, ii * (2 + index * 3));
+            if numbers[3] & numbers[1] != numbers[1] {
+                if numbers[2] & numbers[1] != numbers[1] {
+                    numbers.swap(3, 5);
+                } else {
+                    numbers.swap(3, 2);
+                }
+            }
 
-            // index is 0 if 5 is on its place;
-            let index = (numbers[5] & numbers[6] != numbers[5]) as usize;
-            numbers.swap(2, 2 + index * 3);
+            if numbers[5] & numbers[6] != numbers[5] {
+                numbers.swap(2, 5);
+            }
 
             out.split_whitespace()
                 .map(|s| convert(s))
