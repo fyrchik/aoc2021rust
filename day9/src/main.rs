@@ -50,23 +50,19 @@ fn part1(input: &str) -> usize {
 }
 
 fn dfs(i: usize, width: usize, heights: &mut [u8]) -> usize {
-    if heights[i] == 9 {
-        return 0;
-    }
-
     let mut size = 1;
 
     heights[i] = 9;
-    if width <= i {
+    if width <= i && heights[i - width] != 9 {
         size += dfs(i - width, width, heights);
     }
-    if i % width != 0 {
+    if i % width != 0 && heights[i - 1] != 9 {
         size += dfs(i - 1, width, heights);
     }
-    if i % width != width - 1 {
+    if i % width != width - 1 && heights[i + 1] != 9 {
         size += dfs(i + 1, width, heights);
     }
-    if i + width < heights.len() {
+    if i + width < heights.len() && heights[i + width] != 9 {
         size += dfs(i + width, width, heights);
     }
 
