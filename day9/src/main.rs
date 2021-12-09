@@ -1,4 +1,4 @@
-use std::collections::{binary_heap::BinaryHeap, HashMap};
+use std::collections::binary_heap::BinaryHeap;
 use std::io::{self, Read, Write};
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
@@ -49,40 +49,68 @@ fn part1(input: &str) -> usize {
     sum
 }
 
-fn dfs(i: usize, width: usize, heights: &mut [u8]) -> usize {
-    let mut size = 1;
+fn merge(aliases: &mut [usize], a: usize, b: usize) {
+    let mut x = aliases[a];
+    let mut y = aliases[b];
 
-    heights[i] = 9;
-    if width <= i && heights[i - width] != 9 {
-        size += dfs(i - width, width, heights);
-    }
-    if i % width != 0 && heights[i - 1] != 9 {
-        size += dfs(i - 1, width, heights);
-    }
-    if i % width != width - 1 && heights[i + 1] != 9 {
-        size += dfs(i + 1, width, heights);
-    }
-    if i + width < heights.len() && heights[i + width] != 9 {
-        size += dfs(i + width, width, heights);
+    while aliases[x] != x || aliases[y] != y {
+        debug_assert!(aliases[x] <= x);
+        debug_assert!(aliases[y] <= y);
+        x = aliases[x];
+        y = aliases[y];
     }
 
-    size
+    let min = x.min(y);
+    aliases[x] = min;
+    aliases[y] = min;
+    aliases[a] = min;
+    aliases[b] = min;
 }
 
 pub fn part2(input: &str) -> usize {
-    let (width, mut heights) = parse(input);
+    let (width, heights) = parse(input);
 
-    let mut heap = BinaryHeap::with_capacity(3);
-    for i in 0..heights.len() {
-        if heights[i] == 9 {
-            continue;
+    let mut line = vec![usize::MAX; width];
+    let mut aliases = Vec::<usize>::new();
+    let mut sizes = Vec::<usize>::new();
+    aliases.push(0);
+
+    for row in heights.chunks(width) {
+        let mut current_size = 0;
+        for (&r, cell) in row.iter().zip(line.iter_mut()) {
+            if r != 9 {
+                current_size += 1;
+                if *cell != usize::MAX && aliases[*cell] != *aliases.last().unwrap() {
+                    let l = aliases.len() - 1;
+                    merge(&mut aliases, l, *cell);
+                }
+                *cell = aliases.len() - 1;
+            } else {
+                *cell = usize::MAX;
+                if current_size != 0 {
+                    sizes.push(current_size);
+                    aliases.push(aliases.len());
+                    current_size = 0;
+                }
+            }
         }
+        if current_size != 0 {
+            sizes.push(current_size);
+            aliases.push(aliases.len());
+        }
+    }
 
-        let size = dfs(i, width, &mut heights);
-        if heap.len() < 3 {
-            heap.push(std::cmp::Reverse(size));
-        } else if heap.peek().unwrap().0 < size {
-            *heap.peek_mut().unwrap() = std::cmp::Reverse(size);
+    let mut heap = BinaryHeap::new();
+    for i in (1..aliases.len() - 1).rev() {
+        if aliases[i] != i {
+            sizes[aliases[i]] += sizes[i];
+        } else {
+            let size = sizes[i];
+            if heap.len() < 3 {
+                heap.push(std::cmp::Reverse(size));
+            } else if heap.peek().unwrap().0 < size {
+                *heap.peek_mut().unwrap() = std::cmp::Reverse(size);
+            }
         }
     }
 
