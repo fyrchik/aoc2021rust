@@ -12,28 +12,6 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-#[inline]
-fn is_pair(a: u8, b: u8) -> bool {
-    b == match a {
-        b'(' => b')',
-        b'[' => b']',
-        b'{' => b'}',
-        b'<' => b'>',
-        _ => unreachable!("unexpected input"),
-    }
-}
-
-#[inline]
-fn score(c: u8) -> usize {
-    match c {
-        b')' => 3,
-        b']' => 57,
-        b'}' => 1197,
-        b'>' => 25137,
-        _ => unreachable!("unexpected input"),
-    }
-}
-
 pub fn part1(input: &str) -> usize {
     let mut sum = 0;
     let mut stack = Vec::<u8>::new();
@@ -43,13 +21,30 @@ pub fn part1(input: &str) -> usize {
         for &c in line.as_bytes() {
             match c {
                 b'(' | b'[' | b'{' | b'<' => stack.push(c),
-                b')' | b']' | b'}' | b'>' => match stack.pop() {
-                    Some(p) if is_pair(p, c) => {}
-                    _ => {
-                        sum += score(c);
+                b')' => {
+                    if !matches!(stack.pop(), Some(b'(')) {
+                        sum += 3;
                         continue 'outer;
                     }
-                },
+                }
+                b']' => {
+                    if !matches!(stack.pop(), Some(b'[')) {
+                        sum += 57;
+                        continue 'outer;
+                    }
+                }
+                b'}' => {
+                    if !matches!(stack.pop(), Some(b'{')) {
+                        sum += 1197;
+                        continue 'outer;
+                    }
+                }
+                b'>' => {
+                    if !matches!(stack.pop(), Some(b'<')) {
+                        sum += 25137;
+                        continue 'outer;
+                    }
+                }
                 _ => unreachable!("unexpected input"),
             }
         }
@@ -67,10 +62,26 @@ pub fn part2(input: &str) -> usize {
         for &c in line.as_bytes() {
             match c {
                 b'(' | b'[' | b'{' | b'<' => stack.push(c),
-                b')' | b']' | b'}' | b'>' => match stack.pop() {
-                    Some(p) if is_pair(p, c) => {}
-                    _ => continue 'outer,
-                },
+                b')' => {
+                    if !matches!(stack.pop(), Some(b'(')) {
+                        continue 'outer;
+                    }
+                }
+                b']' => {
+                    if !matches!(stack.pop(), Some(b'[')) {
+                        continue 'outer;
+                    }
+                }
+                b'}' => {
+                    if !matches!(stack.pop(), Some(b'{')) {
+                        continue 'outer;
+                    }
+                }
+                b'>' => {
+                    if !matches!(stack.pop(), Some(b'<')) {
+                        continue 'outer;
+                    }
+                }
                 _ => unreachable!("unexpected input"),
             }
         }
