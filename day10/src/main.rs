@@ -34,7 +34,7 @@ fn score(c: u8) -> usize {
     }
 }
 
-fn part1(input: &str) -> usize {
+pub fn part1(input: &str) -> usize {
     let mut sum = 0;
     let mut stack = Vec::<u8>::new();
 
@@ -58,7 +58,7 @@ fn part1(input: &str) -> usize {
     sum
 }
 
-fn part2(input: &str) -> usize {
+pub fn part2(input: &str) -> usize {
     let mut scores = Vec::<usize>::new();
     let mut stack = Vec::<u8>::new();
 
