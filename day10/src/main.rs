@@ -1,3 +1,4 @@
+use rayon::prelude::*;
 use std::io::{self, Read, Write};
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
@@ -54,48 +55,49 @@ pub fn part1(input: &str) -> usize {
 }
 
 pub fn part2(input: &str) -> usize {
-    let mut scores = Vec::<usize>::new();
-    let mut stack = Vec::<u8>::new();
+    let mut scores: Vec<usize> = input
+        .par_lines()
+        .filter_map(|line| {
+            let mut stack = Vec::<u8>::new();
 
-    'outer: for line in input.lines() {
-        stack.truncate(0);
-        for &c in line.as_bytes() {
-            match c {
-                b'(' | b'[' | b'{' | b'<' => stack.push(c),
-                b')' => {
-                    if !matches!(stack.pop(), Some(b'(')) {
-                        continue 'outer;
+            for &c in line.as_bytes() {
+                match c {
+                    b'(' | b'[' | b'{' | b'<' => stack.push(c),
+                    b')' => {
+                        if !matches!(stack.pop(), Some(b'(')) {
+                            return None;
+                        }
                     }
-                }
-                b']' => {
-                    if !matches!(stack.pop(), Some(b'[')) {
-                        continue 'outer;
+                    b']' => {
+                        if !matches!(stack.pop(), Some(b'[')) {
+                            return None;
+                        }
                     }
-                }
-                b'}' => {
-                    if !matches!(stack.pop(), Some(b'{')) {
-                        continue 'outer;
+                    b'}' => {
+                        if !matches!(stack.pop(), Some(b'{')) {
+                            return None;
+                        }
                     }
-                }
-                b'>' => {
-                    if !matches!(stack.pop(), Some(b'<')) {
-                        continue 'outer;
+                    b'>' => {
+                        if !matches!(stack.pop(), Some(b'<')) {
+                            return None;
+                        }
                     }
+                    _ => unreachable!("unexpected input"),
                 }
-                _ => unreachable!("unexpected input"),
             }
-        }
-        scores.push(stack.iter().rev().fold(0_usize, |acc, &c| {
-            acc * 5
-                + match c {
-                    b'(' => 1,
-                    b'[' => 2,
-                    b'{' => 3,
-                    b'<' => 4,
-                    _ => 0,
-                }
-        }))
-    }
+            Some(stack.iter().rev().fold(0_usize, |acc, &c| {
+                acc * 5
+                    + match c {
+                        b'(' => 1,
+                        b'[' => 2,
+                        b'{' => 3,
+                        b'<' => 4,
+                        _ => unreachable!("BUG: unexpected item on stack"),
+                    }
+            }))
+        })
+        .collect();
 
     scores.sort_unstable();
     scores[scores.len() / 2]
