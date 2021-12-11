@@ -26,7 +26,7 @@ fn step(width: usize, field: &mut [u8]) -> usize {
     let used_bit = 6;
 
     for cell in field.iter_mut() {
-        *cell = ((1 - (*cell >> 7)) * *cell) & value_mask
+        *cell = (((1 - (*cell >> 7)) * *cell) & value_mask) + 1
     }
 
     let mut count = 0;
@@ -36,15 +36,9 @@ fn step(width: usize, field: &mut [u8]) -> usize {
         for i in 0..field.len() {
             // 7-th bit is 1 if a cell was already flashed.
             // 6-th bit is 1 if a cell has been altered.
-            let value = field[i] & value_mask;
-            let overflow = if iter == 0 {
-                field[i] += 1;
-                value >= 9
-            } else {
-                (field[i] & (1 << used_bit)) != 0 && value >= 10
-            };
-
-            let high_bit = field[i] >> flash_bit;
+            let overflow =
+                field[i] & value_mask >= 10 && (iter == 0 || (field[i] & (1 << used_bit)) != 0);
+            let high_bit = field[i] & (1 << flash_bit);
             if high_bit == 0 && overflow {
                 field[i] = 1 << flash_bit;
                 count += 1;
