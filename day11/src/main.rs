@@ -30,8 +30,11 @@ fn step(width: usize, field: &mut [u8]) -> usize {
     // USED_MASK is a mask for checking if cell has been altered.
     const USED_MASK: u8 = 1 << USED_BIT;
 
+    assert!(width > 0);
+    assert!(field.len() == width * width);
+
     for cell in field.iter_mut() {
-        *cell = (((1 - (*cell >> FLASH_BIT)) * *cell) & VALUE_MASK) + 1
+        *cell = ((((*cell >> FLASH_BIT == 0) as u8) * *cell) & VALUE_MASK) + 1
     }
 
     let mut count = 0;
@@ -46,26 +49,28 @@ fn step(width: usize, field: &mut [u8]) -> usize {
                 field[i] = 1 << FLASH_BIT;
                 count += 1;
                 if width <= i {
-                    if i % width != 0 {
+                    if i % width != 0 && i - width - 1 < field.len() {
                         field[i - width - 1] = (field[i - width - 1] + 1) | USED_MASK;
                     }
-                    field[i - width] = (field[i - width] + 1) | USED_MASK;
-                    if i % width != width - 1 {
+                    if i - width < field.len() {
+                        field[i - width] = (field[i - width] + 1) | USED_MASK;
+                    }
+                    if i % width != width - 1 && i - width + 1 < field.len() {
                         field[i - width + 1] = (field[i - width + 1] + 1) | USED_MASK;
                     }
                 }
-                if i % width != 0 {
+                if i % width != 0 && i - 1 < field.len() {
                     field[i - 1] = (field[i - 1] + 1) | USED_MASK;
                 }
-                if i % width != width - 1 {
+                if i % width != width - 1 && i + 1 < field.len() {
                     field[i + 1] = (field[i + 1] + 1) | USED_MASK;
                 }
                 if i + width < field.len() {
-                    if i % width != 0 {
+                    if i % width != 0 && i + width - 1 < field.len() {
                         field[i + width - 1] = (field[i + width - 1] + 1) | USED_MASK;
                     }
                     field[i + width] = (field[i + width] + 1) | USED_MASK;
-                    if i % width != width - 1 {
+                    if i % width != width - 1 && i + width + 1 < field.len() {
                         field[i + width + 1] = (field[i + width + 1] + 1) | USED_MASK;
                     }
                 }
