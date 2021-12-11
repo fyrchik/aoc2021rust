@@ -12,22 +12,21 @@ pub fn main() -> Result<()> {
     Ok(())
 }
 
-fn parse(input: &str) -> Vec<Vec<u8>> {
-    input
+fn parse(input: &str) -> (usize, Vec<u8>) {
+    let res: Vec<u8> = input
         .lines()
-        .map(|line| line.as_bytes().iter().map(|&c| c - b'0').collect())
-        .collect()
+        .flat_map(|line| line.as_bytes().iter().map(|&c| c - b'0'))
+        .collect();
+    ((res.len() as f64).sqrt() as usize, res)
 }
 
-fn step(field: &mut [Vec<u8>]) -> usize {
+fn step(width: usize, field: &mut [u8]) -> usize {
     let value_mask = 0x3F;
     let flash_bit = 7;
     let used_bit = 6;
 
-    for row in field.iter_mut() {
-        for cell in row.iter_mut() {
-            *cell = ((1 - (*cell >> 7)) * *cell) & value_mask
-        }
+    for cell in field.iter_mut() {
+        *cell = ((1 - (*cell >> 7)) * *cell) & value_mask
     }
 
     let mut count = 0;
@@ -35,44 +34,42 @@ fn step(field: &mut [Vec<u8>]) -> usize {
     loop {
         let old_count = count;
         for i in 0..field.len() {
-            for j in 0..field[i].len() {
-                // 7-th bit is 1 if a cell was already flashed.
-                // 6-th bit is 1 if a cell has been altered.
-                let value = field[i][j] & value_mask;
-                let overflow = if iter == 0 {
-                    field[i][j] += 1;
-                    value >= 9
-                } else {
-                    (field[i][j] & (1 << used_bit)) != 0 && value >= 10
-                };
+            // 7-th bit is 1 if a cell was already flashed.
+            // 6-th bit is 1 if a cell has been altered.
+            let value = field[i] & value_mask;
+            let overflow = if iter == 0 {
+                field[i] += 1;
+                value >= 9
+            } else {
+                (field[i] & (1 << used_bit)) != 0 && value >= 10
+            };
 
-                let high_bit = field[i][j] >> flash_bit;
-                if high_bit == 0 && overflow {
-                    field[i][j] = 1 << flash_bit;
-                    count += 1;
-                    if 0 < i {
-                        if 0 < j {
-                            field[i - 1][j - 1] = (field[i - 1][j - 1] + 1) | (1 << used_bit);
-                        }
-                        field[i - 1][j] = (field[i - 1][j] + 1) | (1 << used_bit);
-                        if j < field[i].len() - 1 {
-                            field[i - 1][j + 1] = (field[i - 1][j + 1] + 1) | (1 << used_bit);
-                        }
+            let high_bit = field[i] >> flash_bit;
+            if high_bit == 0 && overflow {
+                field[i] = 1 << flash_bit;
+                count += 1;
+                if width <= i {
+                    if i % width != 0 {
+                        field[i - width - 1] = (field[i - width - 1] + 1) | (1 << used_bit);
                     }
-                    if 0 < j {
-                        field[i][j - 1] = (field[i][j - 1] + 1) | (1 << used_bit);
+                    field[i - width] = (field[i - width] + 1) | (1 << used_bit);
+                    if i % width != width - 1 {
+                        field[i - width + 1] = (field[i - width + 1] + 1) | (1 << used_bit);
                     }
-                    if j < field[i].len() - 1 {
-                        field[i][j + 1] = (field[i][j + 1] + 1) | (1 << used_bit);
+                }
+                if i % width != 0 {
+                    field[i - 1] = (field[i - 1] + 1) | (1 << used_bit);
+                }
+                if i % width != width - 1 {
+                    field[i + 1] = (field[i + 1] + 1) | (1 << used_bit);
+                }
+                if i + width < field.len() {
+                    if i % width != 0 {
+                        field[i + width - 1] = (field[i + width - 1] + 1) | (1 << used_bit);
                     }
-                    if i < field.len() - 1 {
-                        if 0 < j {
-                            field[i + 1][j - 1] = (field[i + 1][j - 1] + 1) | (1 << used_bit);
-                        }
-                        field[i + 1][j] = (field[i + 1][j] + 1) | (1 << used_bit);
-                        if j < field[i].len() - 1 {
-                            field[i + 1][j + 1] = (field[i + 1][j + 1] + 1) | (1 << used_bit);
-                        }
+                    field[i + width] = (field[i + width] + 1) | (1 << used_bit);
+                    if i % width != width - 1 {
+                        field[i + width + 1] = (field[i + width + 1] + 1) | (1 << used_bit);
                     }
                 }
             }
@@ -87,21 +84,20 @@ fn step(field: &mut [Vec<u8>]) -> usize {
 }
 
 pub fn part1(input: &str, steps: usize) -> usize {
-    let mut field = parse(input);
+    let (width, mut field) = parse(input);
     let mut count = 0;
 
     for _ in 0..steps {
-        count += step(&mut field);
+        count += step(width, &mut field);
     }
     count
 }
 
 pub fn part2(input: &str) -> usize {
-    let mut field = parse(input);
+    let (width, mut field) = parse(input);
     let mut count = 1;
-    let size = field.len() * field[0].len();
 
-    while step(&mut field) != size {
+    while step(width, &mut field) != width * width {
         count += 1;
     }
     count
