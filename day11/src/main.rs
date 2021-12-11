@@ -20,16 +20,23 @@ fn parse(input: &str) -> (usize, Vec<u8>) {
     ((res.len() as f64).sqrt() as usize, res)
 }
 
-fn step(width: usize, field: &mut [u8]) -> usize {
-    // VALUE_MASK is a mask for retrieving an actual charge of an octopus.
-    const VALUE_MASK: u8 = 0x3F;
-    // FLASH_BIT is 1 if a cell was already flashed.
-    const FLASH_BIT: u8 = 7;
-    // USED_BIT is 1 if a cell has been altered by the flash of neighbour.
-    const USED_BIT: u8 = 6;
-    // USED_MASK is a mask for checking if cell has been altered.
-    const USED_MASK: u8 = 1 << USED_BIT;
+// VALUE_MASK is a mask for retrieving an actual charge of an octopus.
+const VALUE_MASK: u8 = 0x3F;
+// FLASH_BIT is 1 if a cell was already flashed.
+const FLASH_BIT: u8 = 7;
+// USED_BIT is 1 if a cell has been altered by the flash of neighbour.
+const USED_BIT: u8 = 6;
+// USED_MASK is a mask for checking if cell has been altered.
+const USED_MASK: u8 = 1 << USED_BIT;
 
+fn mark(i: usize, field: &mut [u8]) {
+    if i < field.len() {
+        field[i] += 1;
+        field[i] |= USED_MASK;
+    }
+}
+
+fn step(width: usize, field: &mut [u8]) -> usize {
     assert!(width > 0);
     assert!(field.len() == width * width);
 
@@ -48,30 +55,34 @@ fn step(width: usize, field: &mut [u8]) -> usize {
             if high_bit == 0 && overflow {
                 field[i] = 1 << FLASH_BIT;
                 count += 1;
+
+                // Previous row.
                 if width <= i {
-                    if i % width != 0 && i - width - 1 < field.len() {
-                        field[i - width - 1] = (field[i - width - 1] + 1) | USED_MASK;
+                    if i % width != 0 {
+                        mark(i - width - 1, field);
                     }
-                    if i - width < field.len() {
-                        field[i - width] = (field[i - width] + 1) | USED_MASK;
-                    }
-                    if i % width != width - 1 && i - width + 1 < field.len() {
-                        field[i - width + 1] = (field[i - width + 1] + 1) | USED_MASK;
+                    mark(i - width, field);
+                    if i % width != width - 1 {
+                        mark(i - width + 1, field);
                     }
                 }
-                if i % width != 0 && i - 1 < field.len() {
-                    field[i - 1] = (field[i - 1] + 1) | USED_MASK;
+
+                // Current row.
+                if i % width != 0 {
+                    mark(i - 1, field);
                 }
-                if i % width != width - 1 && i + 1 < field.len() {
-                    field[i + 1] = (field[i + 1] + 1) | USED_MASK;
+                if i % width != width - 1 {
+                    mark(i + 1, field);
                 }
+
+                // Next row.
                 if i + width < field.len() {
-                    if i % width != 0 && i + width - 1 < field.len() {
-                        field[i + width - 1] = (field[i + width - 1] + 1) | USED_MASK;
+                    if i % width != 0 {
+                        mark(i + width - 1, field);
                     }
-                    field[i + width] = (field[i + width] + 1) | USED_MASK;
-                    if i % width != width - 1 && i + width + 1 < field.len() {
-                        field[i + width + 1] = (field[i + width + 1] + 1) | USED_MASK;
+                    mark(i + width, field);
+                    if i % width != width - 1 {
+                        mark(i + width + 1, field);
                     }
                 }
             }
