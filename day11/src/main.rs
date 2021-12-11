@@ -2,7 +2,7 @@ use std::io::{self, Read, Write};
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
-fn main() -> Result<()> {
+pub fn main() -> Result<()> {
     let mut input = String::new();
     io::stdin().read_to_string(&mut input)?;
 
@@ -86,7 +86,7 @@ fn step(field: &mut [Vec<u8>]) -> usize {
     count
 }
 
-fn part1(input: &str, steps: usize) -> usize {
+pub fn part1(input: &str, steps: usize) -> usize {
     let mut field = parse(input);
     let mut count = 0;
 
@@ -96,7 +96,7 @@ fn part1(input: &str, steps: usize) -> usize {
     count
 }
 
-fn part2(input: &str) -> usize {
+pub fn part2(input: &str) -> usize {
     let mut field = parse(input);
     let mut count = 1;
     let size = field.len() * field[0].len();
