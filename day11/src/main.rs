@@ -21,12 +21,17 @@ fn parse(input: &str) -> (usize, Vec<u8>) {
 }
 
 fn step(width: usize, field: &mut [u8]) -> usize {
-    let value_mask = 0x3F;
-    let flash_bit = 7;
-    let used_bit = 6;
+    // VALUE_MASK is a mask for retrieving an actual charge of an octopus.
+    const VALUE_MASK: u8 = 0x3F;
+    // FLASH_BIT is 1 if a cell was already flashed.
+    const FLASH_BIT: u8 = 7;
+    // USED_BIT is 1 if a cell has been altered by the flash of neighbour.
+    const USED_BIT: u8 = 6;
+    // USED_MASK is a mask for checking if cell has been altered.
+    const USED_MASK: u8 = 1 << USED_BIT;
 
     for cell in field.iter_mut() {
-        *cell = (((1 - (*cell >> 7)) * *cell) & value_mask) + 1
+        *cell = (((1 - (*cell >> FLASH_BIT)) * *cell) & VALUE_MASK) + 1
     }
 
     let mut count = 0;
@@ -34,36 +39,34 @@ fn step(width: usize, field: &mut [u8]) -> usize {
     loop {
         let old_count = count;
         for i in 0..field.len() {
-            // 7-th bit is 1 if a cell was already flashed.
-            // 6-th bit is 1 if a cell has been altered.
             let overflow =
-                field[i] & value_mask >= 10 && (iter == 0 || (field[i] & (1 << used_bit)) != 0);
-            let high_bit = field[i] & (1 << flash_bit);
+                field[i] & VALUE_MASK >= 10 && (iter == 0 || (field[i] & USED_MASK) != 0);
+            let high_bit = field[i] & (1 << FLASH_BIT);
             if high_bit == 0 && overflow {
-                field[i] = 1 << flash_bit;
+                field[i] = 1 << FLASH_BIT;
                 count += 1;
                 if width <= i {
                     if i % width != 0 {
-                        field[i - width - 1] = (field[i - width - 1] + 1) | (1 << used_bit);
+                        field[i - width - 1] = (field[i - width - 1] + 1) | USED_MASK;
                     }
-                    field[i - width] = (field[i - width] + 1) | (1 << used_bit);
+                    field[i - width] = (field[i - width] + 1) | USED_MASK;
                     if i % width != width - 1 {
-                        field[i - width + 1] = (field[i - width + 1] + 1) | (1 << used_bit);
+                        field[i - width + 1] = (field[i - width + 1] + 1) | USED_MASK;
                     }
                 }
                 if i % width != 0 {
-                    field[i - 1] = (field[i - 1] + 1) | (1 << used_bit);
+                    field[i - 1] = (field[i - 1] + 1) | USED_MASK;
                 }
                 if i % width != width - 1 {
-                    field[i + 1] = (field[i + 1] + 1) | (1 << used_bit);
+                    field[i + 1] = (field[i + 1] + 1) | USED_MASK;
                 }
                 if i + width < field.len() {
                     if i % width != 0 {
-                        field[i + width - 1] = (field[i + width - 1] + 1) | (1 << used_bit);
+                        field[i + width - 1] = (field[i + width - 1] + 1) | USED_MASK;
                     }
-                    field[i + width] = (field[i + width] + 1) | (1 << used_bit);
+                    field[i + width] = (field[i + width] + 1) | USED_MASK;
                     if i % width != width - 1 {
-                        field[i + width + 1] = (field[i + width + 1] + 1) | (1 << used_bit);
+                        field[i + width + 1] = (field[i + width + 1] + 1) | USED_MASK;
                     }
                 }
             }
