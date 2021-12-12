@@ -47,29 +47,23 @@ fn parse(input: &str) -> Graph {
 }
 
 fn dfs(v: usize, g: &[Vec<usize>], can_visit_small: bool, visited: &mut [bool]) -> usize {
-    if v == END_VERTICE {
-        return 1;
-    }
-
     let is_lower = v & (1 << UPPER_BIT) == 0;
-    if is_lower {
-        visited[v & VALUE_MASK] = true;
-    }
+    visited[v & VALUE_MASK] = is_lower;
 
     let mut count = 0;
     for &n in &g[v & VALUE_MASK] {
         let was_visited = visited[n & VALUE_MASK];
         if !was_visited || (can_visit_small && n != START_VERTICE && n != END_VERTICE) {
-            count += dfs(n, g, can_visit_small && !was_visited, visited);
-            if was_visited {
-                visited[n] = true;
-            }
+            count += if n == END_VERTICE {
+                1
+            } else {
+                dfs(n, g, can_visit_small && !was_visited, visited)
+            };
+            visited[n & VALUE_MASK] = was_visited;
         }
     }
 
-    if is_lower {
-        visited[v & VALUE_MASK] = false;
-    }
+    visited[v & VALUE_MASK] = false;
 
     count
 }
