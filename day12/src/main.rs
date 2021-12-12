@@ -3,7 +3,7 @@ use std::io::{self, Read, Write};
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
-fn main() -> Result<()> {
+pub fn main() -> Result<()> {
     let mut input = String::new();
     io::stdin().read_to_string(&mut input)?;
 
@@ -74,12 +74,12 @@ fn dfs(v: usize, g: &[Vec<usize>], can_visit_small: bool, visited: &mut [bool]) 
     count
 }
 
-fn part1(input: &str) -> usize {
+pub fn part1(input: &str) -> usize {
     let g = parse(input);
     dfs(START_VERTICE, &g, false, &mut vec![false; g.len()])
 }
 
-fn part2(input: &str) -> usize {
+pub fn part2(input: &str) -> usize {
     let g = parse(input);
     dfs(START_VERTICE, &g, true, &mut vec![false; g.len()])
 }
