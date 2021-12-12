@@ -13,54 +13,62 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-type Graph<'a> = HashMap<&'a str, Vec<&'a str>>;
+type Graph = Vec<Vec<usize>>;
+
+const START_VERTICE: usize = 0;
+const END_VERTICE: usize = 1;
+// UPPER_BIT is 1 if vertice name is in uppercase.
+const UPPER_BIT: u32 = usize::BITS - 1;
+// VALUE_MASK is a mask to retrieve real vertex index.
+const VALUE_MASK: usize = (1 << UPPER_BIT) - 1;
 
 fn parse(input: &str) -> Graph {
-    let mut graph = Graph::new();
+    let mut vertices = HashMap::<&str, usize>::new();
+    vertices.insert("start", START_VERTICE);
+    vertices.insert("end", END_VERTICE);
+
+    let mut graph = vec![vec![], vec![]];
     input
         .lines()
         .map(|line| line.split_once('-').unwrap())
-        .for_each(|(a, b)| {
-            graph
-                .entry(a)
-                .or_insert_with(|| Vec::with_capacity(1))
-                .push(b);
-            graph
-                .entry(b)
-                .or_insert_with(|| Vec::with_capacity(1))
-                .push(a);
+        .for_each(|(a_name, b_name)| {
+            let &mut a = vertices.entry(a_name).or_insert_with(|| {
+                graph.push(Vec::with_capacity(1));
+                graph.len() - 1
+            });
+            let &mut b = vertices.entry(b_name).or_insert_with(|| {
+                graph.push(Vec::with_capacity(1));
+                graph.len() - 1
+            });
+            graph[a].push(b | ((b_name.chars().any(char::is_uppercase) as usize) << UPPER_BIT));
+            graph[b].push(a | ((a_name.chars().any(char::is_uppercase) as usize) << UPPER_BIT));
         });
     graph
 }
 
-fn dfs<'a>(
-    v: &'a str,
-    g: &'a Graph,
-    can_visit_small: bool,
-    visited: &mut HashMap<&'a str, bool>,
-) -> usize {
-    if v == "end" {
+fn dfs(v: usize, g: &[Vec<usize>], can_visit_small: bool, visited: &mut [bool]) -> usize {
+    if v == END_VERTICE {
         return 1;
     }
 
-    let is_lower = v.chars().any(char::is_lowercase);
+    let is_lower = v & (1 << UPPER_BIT) == 0;
     if is_lower {
-        visited.insert(v, true);
+        visited[v & VALUE_MASK] = true;
     }
 
     let mut count = 0;
-    for &n in &g[v] {
-        let &was_visited = visited.get(n).unwrap_or(&false);
-        if !was_visited || (can_visit_small && n != "start" && n != "end") {
+    for &n in &g[v & VALUE_MASK] {
+        let was_visited = visited[n & VALUE_MASK];
+        if !was_visited || (can_visit_small && n != START_VERTICE && n != END_VERTICE) {
             count += dfs(n, g, can_visit_small && !was_visited, visited);
             if was_visited {
-                visited.insert(n, true);
+                visited[n] = true;
             }
         }
     }
 
     if is_lower {
-        visited.insert(v, false);
+        visited[v & VALUE_MASK] = false;
     }
 
     count
@@ -68,12 +76,12 @@ fn dfs<'a>(
 
 fn part1(input: &str) -> usize {
     let g = parse(input);
-    dfs("start", &g, false, &mut HashMap::new())
+    dfs(START_VERTICE, &g, false, &mut vec![false; g.len()])
 }
 
 fn part2(input: &str) -> usize {
     let g = parse(input);
-    dfs("start", &g, true, &mut HashMap::new())
+    dfs(START_VERTICE, &g, true, &mut vec![false; g.len()])
 }
 
 #[cfg(test)]
