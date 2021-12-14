@@ -28,24 +28,38 @@ fn parse(input: &str) -> (&[u8], HashMap<u16, u8>) {
     (template, rules)
 }
 
-fn prefill_cache(depth: usize, rules: &HashMap<u16, u8>) -> HashMap<u16, [usize; 255]> {
-    let mut prev = HashMap::<u16, [usize; 255]>::new();
-    let mut curr = HashMap::<u16, [usize; 255]>::new();
+struct Cache {
+    indices: [u8; 255],
+    frequencies: HashMap<u16, Vec<usize>>,
+}
+
+fn prefill_cache(depth: usize, rules: &HashMap<u16, u8>, template: &[u8]) -> Cache {
+    let mut indices = [0_u8; 255];
+    let mut count = 1;
+    for &c in template.iter().chain(rules.values()) {
+        if indices[c as usize] == 0 {
+            indices[c as usize] = count;
+            count += 1;
+        }
+    }
+
+    let mut prev = HashMap::<u16, Vec<usize>>::new();
+    let mut curr = HashMap::<u16, Vec<usize>>::new();
 
     for &pair in rules.keys() {
-        let mut freq = [0_usize; 255];
-        freq[(pair >> 8) as usize] += 1;
+        let mut freq = vec![0; count as usize];
+        freq[indices[(pair >> 8) as usize] as usize] += 1;
         prev.insert(pair, freq);
-        curr.insert(pair, [0_usize; 255]);
+        curr.insert(pair, vec![0; count as usize]);
     }
 
     for _ in 0..depth {
         for (&pair, &mid) in rules {
-            let &f1 = prev.get(&((pair & 0xFF00) | mid as u16)).unwrap();
-            let &f2 = prev.get(&(((mid as u16) << 8) | (pair & 0xFF))).unwrap();
+            let f1 = prev.get(&((pair & 0xFF00) | mid as u16)).unwrap();
+            let f2 = prev.get(&(((mid as u16) << 8) | (pair & 0xFF))).unwrap();
 
             curr.entry(pair).and_modify(|next| {
-                for (to, from) in next.iter_mut().zip(f2.iter().zip(f1.iter())) {
+                for (to, from) in next.iter_mut().zip(f1.iter().zip(f2.iter())) {
                     *to = from.0 + from.1
                 }
             });
@@ -53,18 +67,27 @@ fn prefill_cache(depth: usize, rules: &HashMap<u16, u8>) -> HashMap<u16, [usize;
         std::mem::swap(&mut prev, &mut curr);
     }
 
-    prev
+    Cache {
+        indices,
+        frequencies: prev,
+    }
 }
 
-fn get_freq_diff(template: &[u8], cache: &HashMap<u16, [usize; 255]>) -> usize {
-    let mut freq = [0_usize; 255];
-    for w in template.windows(2) {
-        let pair = cache.get(&(((w[0] as u16) << 8) | w[1] as u16)).unwrap();
-        for (to, from) in freq.iter_mut().zip(*pair) {
-            *to += from
-        }
-    }
-    freq[template[template.len() - 1] as usize] += 1;
+fn get_freq_diff(template: &[u8], cache: &Cache) -> usize {
+    let size = cache.indices.iter().filter(|&x| *x != 0).count();
+    let mut freq = template
+        .windows(2)
+        .map(|w| {
+            let key = ((w[0] as u16) << 8) | w[1] as u16;
+            cache.frequencies.get(&key).unwrap()
+        })
+        .fold(vec![0_usize; size + 1], |mut freq, w| {
+            for (to, from) in freq.iter_mut().zip(w) {
+                *to += from
+            }
+            freq
+        });
+    freq[cache.indices[template[template.len() - 1] as usize] as usize] += 1;
 
     let (min, max) = freq
         .iter()
@@ -77,14 +100,14 @@ fn get_freq_diff(template: &[u8], cache: &HashMap<u16, [usize; 255]>) -> usize {
 
 pub fn part1(input: &str) -> usize {
     let (template, rules) = parse(input);
-    let cache = prefill_cache(10, &rules);
+    let cache = prefill_cache(10, &rules, template);
 
     get_freq_diff(template, &cache)
 }
 
 pub fn part2(input: &str) -> usize {
     let (template, rules) = parse(input);
-    let cache = prefill_cache(40, &rules);
+    let cache = prefill_cache(40, &rules, template);
 
     get_freq_diff(template, &cache)
 }
