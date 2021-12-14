@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::io::{self, Read};
 
-fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
+pub fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     let mut input = String::new();
     io::stdin().read_to_string(&mut input)?;
 
@@ -75,14 +75,14 @@ fn get_freq_diff(template: &[u8], cache: &HashMap<u16, [usize; 255]>) -> usize {
     max - min
 }
 
-fn part1(input: &str) -> usize {
+pub fn part1(input: &str) -> usize {
     let (template, rules) = parse(input);
     let cache = prefill_cache(10, &rules);
 
     get_freq_diff(template, &cache)
 }
 
-fn part2(input: &str) -> usize {
+pub fn part2(input: &str) -> usize {
     let (template, rules) = parse(input);
     let cache = prefill_cache(40, &rules);
 
