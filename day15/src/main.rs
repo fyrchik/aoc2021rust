@@ -53,12 +53,14 @@ fn risk(i: usize, j: usize, cave: &[Vec<u32>]) -> u32 {
 }
 
 fn shortest_path(cave: &[Vec<u32>], scale: usize) -> u32 {
-    let mut dist = vec![u32::MAX; scale * scale * cave.len() * cave[0].len()];
-    let mut queue = BinaryHeap::<State>::new();
+    let mut v = vec![u32::MAX; scale * scale * cave.len() * cave[0].len()];
+    let dist = v.as_mut_slice();
+    let mut queue = BinaryHeap::<State>::with_capacity(4);
 
     queue.push(State { node: 0, cost: 0 });
     dist[0] = 0;
 
+    let width = cave[0].len() * scale;
     while let Some(State { node, cost }) = queue.pop() {
         if node == dist.len() - 1 {
             return dist[node];
@@ -66,13 +68,10 @@ fn shortest_path(cave: &[Vec<u32>], scale: usize) -> u32 {
             continue;
         }
 
-        let (x, y) = (
-            node / (cave[0].len() * scale),
-            node % (cave[0].len() * scale),
-        );
+        let (x, y) = (node / width, node % width);
         if x > 0 {
             let alt = cost + risk(x - 1, y, cave);
-            let v = node - cave[0].len() * scale;
+            let v = node - width;
             if alt < dist[v] {
                 queue.push(State { node: v, cost: alt });
                 dist[v] = alt;
@@ -86,7 +85,7 @@ fn shortest_path(cave: &[Vec<u32>], scale: usize) -> u32 {
                 dist[v] = alt;
             }
         }
-        if y + 1 < cave[0].len() * scale {
+        if y + 1 < width {
             let v = node + 1;
             let alt = cost + risk(x, y + 1, cave);
             if alt < dist[v] {
@@ -95,7 +94,7 @@ fn shortest_path(cave: &[Vec<u32>], scale: usize) -> u32 {
             }
         }
         if x + 1 < cave.len() * scale {
-            let v = node + cave[0].len() * scale;
+            let v = node + width;
             let alt = dist[node] + risk(x + 1, y, cave);
             if alt < dist[v] {
                 queue.push(State { node: v, cost: alt });
