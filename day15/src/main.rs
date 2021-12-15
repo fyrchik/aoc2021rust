@@ -4,7 +4,7 @@ use std::{
     io::{self, Read},
 };
 
-fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
+pub fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     let mut input = String::new();
     io::stdin().read_to_string(&mut input)?;
 
@@ -107,12 +107,12 @@ fn shortest_path(cave: &[Vec<u32>], scale: usize) -> u32 {
     *dist.last().unwrap()
 }
 
-fn part1(input: &str) -> u32 {
+pub fn part1(input: &str) -> u32 {
     let cave = parse::<u32>(input);
     shortest_path(&cave, 1)
 }
 
-fn part2(input: &str) -> u32 {
+pub fn part2(input: &str) -> u32 {
     let cave = parse::<u32>(input);
     shortest_path(&cave, 5)
 }
