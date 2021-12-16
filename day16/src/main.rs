@@ -1,7 +1,4 @@
-use std::{
-    io::{self, Read},
-    ops::{BitOr, Shl},
-};
+use std::io::{self, Read};
 
 pub fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     let mut input = String::new();
@@ -37,25 +34,33 @@ impl Packet {
         bit
     }
 
+    /// Reads up to bit_count bits at once.
+    /// bit_count must be less or equal to 9 to ensure the result spans
+    /// at most 2 consecutive bytes.
     #[inline]
-    fn read_multi<T>(&mut self, n: usize) -> T
-    where
-        T: From<u8> + Shl<Output = T> + BitOr<Output = T>,
-    {
-        (0..n)
-            .map(|_| self.next_bit())
-            .fold(T::from(0_u8), |a, b| (a << T::from(1_u8)) | T::from(b))
+    fn small_number(&mut self, bit_count: usize) -> u16 {
+        let rem = 8 - self.pos % 8;
+        let pos = self.pos;
+
+        self.pos += bit_count;
+        if bit_count <= rem {
+            (self.data[pos / 8] as u16 >> (rem - bit_count)) & ((1 << bit_count) - 1)
+        } else {
+            let left = (self.data[pos / 8] as u16 & ((1 << rem) - 1)) << (bit_count - rem);
+            let right = self.data[pos / 8 + 1] as u16 >> (8 - (bit_count - rem));
+            left | right
+        }
     }
 
     fn eval(&mut self, stack: &mut Vec<u64>) -> u32 {
-        let mut ver = ((self.next_bit() << 2) | (self.next_bit() << 1) | self.next_bit()) as u32;
+        let mut ver = self.small_number(3) as u32;
+        let typ = self.small_number(3);
 
-        let typ = (self.next_bit() << 2) | (self.next_bit() << 1) | self.next_bit();
         if typ == 4 {
             let mut num = 0_u64;
             loop {
                 let bit = self.next_bit();
-                num = (num << 4) | self.read_multi::<u64>(4);
+                num = (num << 4) | self.small_number(4) as u64;
                 if bit == 0 {
                     stack.push(num);
                     return ver;
@@ -65,14 +70,15 @@ impl Packet {
 
         let mut count = 0_usize;
         if self.next_bit() == 0 {
-            let bit_len: usize = self.read_multi(15);
+            let bit_len: usize =
+                ((self.small_number(8) as usize) << 7) | self.small_number(7) as usize;
             let end = self.pos + bit_len;
             while self.pos < end {
                 count += 1;
                 ver += self.eval(stack);
             }
         } else {
-            count = self.read_multi(11);
+            count = ((self.small_number(8) as usize) << 3) | self.small_number(3) as usize;
             stack.reserve(count);
             for _ in 0..count {
                 ver += self.eval(stack);
