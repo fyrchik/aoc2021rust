@@ -3,7 +3,7 @@ use std::{
     ops::{BitOr, Shl},
 };
 
-fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
+pub fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     let mut input = String::new();
     io::stdin().read_to_string(&mut input)?;
 
@@ -100,13 +100,13 @@ impl Packet {
     }
 }
 
-fn part1(input: &str) -> u32 {
+pub fn part1(input: &str) -> u32 {
     let mut p = parse(input);
     let mut stack = vec![];
     p.eval(&mut stack)
 }
 
-fn part2(input: &str) -> u64 {
+pub fn part2(input: &str) -> u64 {
     let mut p = parse(input);
     let mut stack = Vec::with_capacity(10);
     p.eval(&mut stack);
