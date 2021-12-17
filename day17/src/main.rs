@@ -2,7 +2,7 @@ use std::error::Error;
 use std::io::{self, Read};
 use std::result::Result;
 
-fn main() -> Result<(), Box<dyn Error>> {
+pub fn main() -> Result<(), Box<dyn Error>> {
     let mut input = String::new();
     io::stdin().read_to_string(&mut input)?;
 
@@ -66,13 +66,13 @@ fn calculate(x1: i32, x2: i32, y1: i32, y2: i32) -> (i32, u32) {
     (y_max, count)
 }
 
-fn part1(input: &str) -> i32 {
+pub fn part1(input: &str) -> i32 {
     let ((x1, x2), (y1, y2)) = parse(input).unwrap();
     let (y_max, _) = calculate(x1, x2, y1, y2);
     y_max
 }
 
-fn part2(input: &str) -> u32 {
+pub fn part2(input: &str) -> u32 {
     let ((x1, x2), (y1, y2)) = parse(input).unwrap();
     let (_, count) = calculate(x1, x2, y1, y2);
     count
