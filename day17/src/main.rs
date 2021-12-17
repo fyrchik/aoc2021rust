@@ -31,20 +31,15 @@ fn calculate(x1: i32, x2: i32, y1: i32, y2: i32) -> (i32, u32) {
     let mut count = 0_u32;
 
     for y in y1..y1.abs() {
-        let mut vy = y;
-        let mut cy = 0;
-        let mut n = 0;
-        while y2 < cy {
-            n += 1;
-            cy += vy;
-            vy -= 1;
-        }
+        let d = (1 - 2*y).pow(2) - 8*(y2-y);
+        let mut n = 1 + (((d as f64).sqrt() + (2*y - 1) as f64) / 2f64).ceil() as i32;
+        let mut cy = y * n - n*(n-1) / 2;
+        let mut vy = y - n;
 
         let mut last_x = x2;
+        let mut c = 0_u32;
         while y1 <= cy {
             let sum = n * (n - 1) / 2;
-
-            let mut c = 0_u32;
             for x in (0..=last_x).rev() {
                 let dist = if n <= x { x * n - sum } else { x * (x + 1) / 2 };
                 c += (x1 <= dist && dist <= x2) as u32;
@@ -53,14 +48,14 @@ fn calculate(x1: i32, x2: i32, y1: i32, y2: i32) -> (i32, u32) {
                     break;
                 }
             }
-            if c != 0 {
-                y_max = y_max.max(y * (y + 1) / 2);
-            }
 
-            count += c;
             n += 1;
             cy += vy;
             vy -= 1;
+        }
+        if c != 0 {
+            count += c;
+            y_max = y_max.max(y * (y + 1) / 2);
         }
     }
     (y_max, count)
