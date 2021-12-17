@@ -36,7 +36,7 @@ fn calculate(x1: i32, x2: i32, y1: i32, y2: i32) -> (i32, u32) {
             let mut cy = y * n - n * (n - 1) / 2;
             let mut vy = y - n;
 
-            let mut last_x = x2;
+            let mut last_x = x2 / n + (n - 1) / 2;
             let mut c = 0_u32;
             while y1 <= cy {
                 let sum = n * (n - 1) / 2;
