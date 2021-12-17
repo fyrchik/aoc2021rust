@@ -1,3 +1,4 @@
+use rayon::prelude::*;
 use std::error::Error;
 use std::io::{self, Read};
 use std::result::Result;
@@ -27,38 +28,35 @@ fn parse(input: &str) -> Option<((i32, i32), (i32, i32))> {
 }
 
 fn calculate(x1: i32, x2: i32, y1: i32, y2: i32) -> (i32, u32) {
-    let mut y_max = 0;
-    let mut count = 0_u32;
+    (y1..y1.abs())
+        .into_par_iter()
+        .filter_map(|y| {
+            let d = (1 - 2 * y).pow(2) - 8 * (y2 - y);
+            let mut n = 1 + (((d as f64).sqrt() + (2 * y - 1) as f64) / 2f64).ceil() as i32;
+            let mut cy = y * n - n * (n - 1) / 2;
+            let mut vy = y - n;
 
-    for y in y1..y1.abs() {
-        let d = (1 - 2*y).pow(2) - 8*(y2-y);
-        let mut n = 1 + (((d as f64).sqrt() + (2*y - 1) as f64) / 2f64).ceil() as i32;
-        let mut cy = y * n - n*(n-1) / 2;
-        let mut vy = y - n;
-
-        let mut last_x = x2;
-        let mut c = 0_u32;
-        while y1 <= cy {
-            let sum = n * (n - 1) / 2;
-            for x in (0..=last_x).rev() {
-                let dist = if n <= x { x * n - sum } else { x * (x + 1) / 2 };
-                c += (x1 <= dist && dist <= x2) as u32;
-                if dist < x1 {
-                    last_x = x;
-                    break;
+            let mut last_x = x2;
+            let mut c = 0_u32;
+            while y1 <= cy {
+                let sum = n * (n - 1) / 2;
+                for x in (0..=last_x).rev() {
+                    let dist = if n <= x { x * n - sum } else { x * (x + 1) / 2 };
+                    c += (x1 <= dist && dist <= x2) as u32;
+                    if dist < x1 {
+                        last_x = x;
+                        break;
+                    }
                 }
+
+                n += 1;
+                cy += vy;
+                vy -= 1;
             }
 
-            n += 1;
-            cy += vy;
-            vy -= 1;
-        }
-        if c != 0 {
-            count += c;
-            y_max = y_max.max(y * (y + 1) / 2);
-        }
-    }
-    (y_max, count)
+            (c != 0).then(|| (y * (y + 1) / 2, c))
+        })
+        .reduce(|| (i32::MIN, 0), |acc, v| (acc.0.max(v.0), acc.1 + v.1))
 }
 
 pub fn part1(input: &str) -> i32 {
